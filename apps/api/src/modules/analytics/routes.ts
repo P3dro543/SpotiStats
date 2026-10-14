@@ -80,7 +80,7 @@ export async function analyticsRoutes(app: FastifyInstance): Promise<void> {
       SELECT to_char(date_trunc('day', "playedAt" AT TIME ZONE ${filters.timezone}), 'YYYY-MM-DD') AS date,
         count(*)::bigint AS events, coalesce(sum("msPlayed"), 0)::bigint AS milliseconds
       FROM "ListeningEvent" ${where}
-      GROUP BY date_trunc('day', "playedAt" AT TIME ZONE ${filters.timezone}) ORDER BY 1 ASC`);
+      GROUP BY 1 ORDER BY 1 ASC`);
     return { data: data.map((row) => ({ date: row.date, events: Number(row.events), minutes: Number(row.milliseconds) / 60_000 })) };
   });
 
