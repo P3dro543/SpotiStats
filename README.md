@@ -15,7 +15,7 @@ Spotify no ofrece un historial ilimitado mediante su Web API. Los rankings de af
 ## Requisitos
 
 - Node.js 22.12 o posterior compatible.
-- pnpm 11.9 (el repositorio fija la versión en `packageManager`).
+- pnpm 10.34.6 (el repositorio fija la versión en `packageManager`).
 - Docker Compose para la base local o un PostgreSQL compatible.
 
 El flujo de instalación y scripts del repositorio usa pnpm. Actívalo con `corepack enable` si aún no está disponible.
