@@ -62,9 +62,9 @@ En Vercel configura estas variables para Production:
 - `DATABASE_URL`: cadena de conexión de Neon con TLS; usa la URL pooled para la API.
 - `SESSION_SECRET`: secreto aleatorio propio de al menos 32 caracteres.
 - `TOKEN_ENCRYPTION_KEY`: clave propia en Base64 que represente exactamente 32 bytes.
-- `WEB_ORIGIN`: origen público de la app, por ejemplo `https://spotistats-tuusuario.vercel.app` (sin `/` final).
+- `WEB_ORIGIN`: `https://spotistats-olive.vercel.app` (sin `/` final).
 - `SPOTIFY_CLIENT_ID` y `SPOTIFY_CLIENT_SECRET` si usarás conexión Spotify.
-- `SPOTIFY_REDIRECT_URI`: `https://spotistats-tuusuario.vercel.app/api/v1/auth/spotify/callback`; debe coincidir exactamente con el callback registrado en Spotify.
+- `SPOTIFY_REDIRECT_URI`: `https://spotistats-olive.vercel.app/api/v1/auth/spotify/callback`; debe coincidir exactamente con el callback registrado en Spotify.
 
 Después de agregar las variables, despliega de nuevo. La base Neon ya debe tener las migraciones aplicadas; antes de desplegar cambios futuros del esquema, ejecuta `pnpm db:deploy` contra la base correspondiente. No pongas los secretos en `vercel.json`, en el código del frontend ni en Git.
 
