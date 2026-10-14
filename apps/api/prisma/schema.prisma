@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ListeningSource {
+  SPOTIFY_API
+  IMPORT
+}
+
+enum ImportStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  PARTIAL
+  FAILED
+}
+
+enum SyncType {
+  RECENTLY_PLAYED
+  TOP_TRACKS
+  TOP_ARTISTS
+}
+
+enum JobStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum SnapshotType {
+  TRACK
+  ARTIST
+}
+
+model User {
+  id               String             @id @default(cuid())
+  spotifyUserId    String             @unique
+  displayName      String?
+  email            String?
+  country          String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  connection       SpotifyConnection?
+  listeningEvents  ListeningEvent[]
+  historyImports   HistoryImport[]
+  syncRuns         SyncRun[]
+  topItemSnapshots TopItemSnapshot[]
+  sessions         AppSession[]
+}
+
+model AppSession {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+}
+
+model SpotifyConnection {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  accessTokenEncrypted  String
+  refreshTokenEncrypted String
+  expiresAt             DateTime
+  grantedScopes         String[]
+  connectedAt           DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ListeningEvent {
+  id              String          @id @default(cuid())
+  userId          String
+  trackSpotifyId  String?
+  trackUri        String?
+  trackName       String
+  artistName      String
+  albumName       String?
+  playedAt        DateTime
+  msPlayed        Int?
+  source          ListeningSource
+  importId        String?
+  dedupeKey       String?
+  skipped         Boolean?
+  shuffle         Boolean?
+  rawMetadata     Json?
+  createdAt       DateTime        @default(now())
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  historyImport   HistoryImport?  @relation(fields: [importId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, playedAt])
+  @@index([userId, trackSpotifyId])
+  @@index([importId])
+  @@index([userId, source, playedAt])
+}
+
+model HistoryImport {
+  id              String          @id @default(cuid())
+  userId          String
+  status          ImportStatus    @default(QUEUED)
+  filename        String
+  fileChecksum    String
+  totalRecords    Int             @default(0)
+  importedRecords Int             @default(0)
+  skippedRecords  Int             @default(0)
+  failedRecords   Int             @default(0)
+  earliestPlayedAt DateTime?
+  latestPlayedAt   DateTime?
+  startedAt       DateTime        @default(now())
+  completedAt     DateTime?
+  errorSummary    String?
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events          ListeningEvent[]
+
+  @@unique([userId, fileChecksum])
+  @@index([userId, startedAt])
+  @@index([userId, status])
+}
+
+model SyncRun {
+  id              String    @id @default(cuid())
+  userId          String
+  syncType        SyncType
+  status          JobStatus @default(RUNNING)
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  lastCursor      String?
+  recordsProcessed Int     @default(0)
+  errorSummary    String?
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
+  @@index([userId, status])
+}
+
+model TopItemSnapshot {
+  id           String       @id @default(cuid())
+  userId       String
+  itemType     SnapshotType
+  spotifyItemId String
+  period       String
+  rank         Int
+  snapshotAt   DateTime     @default(now())
+  metadata     Json
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemType, spotifyItemId, period, snapshotAt])
+  @@index([userId, itemType, period, snapshotAt])
+}

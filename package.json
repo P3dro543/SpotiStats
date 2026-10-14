@@ -1,0 +1,25 @@
+{
+  "name": "spotify-stats",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.9.0",
+  "engines": { "node": ">=22.12.0", "pnpm": ">=10.0.0" },
+  "scripts": {
+    "dev": "pnpm --filter @spotify-stats/api dev",
+    "dev:web": "pnpm --filter @spotify-stats/web dev",
+    "build": "pnpm --filter @spotify-stats/shared build && pnpm --filter @spotify-stats/api build && pnpm --filter @spotify-stats/web build",
+    "typecheck": "pnpm --filter @spotify-stats/shared typecheck && pnpm --filter @spotify-stats/api typecheck && pnpm --filter @spotify-stats/web typecheck",
+    "lint": "pnpm --filter @spotify-stats/api lint && pnpm --filter @spotify-stats/web lint",
+    "test": "pnpm --filter @spotify-stats/api test && pnpm --filter @spotify-stats/web test",
+    "db:generate": "pnpm --filter @spotify-stats/api db:generate",
+    "db:migrate": "pnpm --filter @spotify-stats/api db:migrate",
+    "db:deploy": "pnpm --filter @spotify-stats/api db:deploy",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.44.1",
+    "eslint": "^10.11.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  }
+}

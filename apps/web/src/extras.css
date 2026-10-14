@@ -1,0 +1,5 @@
+.center-actions { display: flex; justify-content: center; margin: 16px 0; }
+.affinity-panel { margin-top: 16px; }
+.affinity-periods { display: flex; gap: 7px; margin: 0 0 12px; }
+.affinity-periods button { border: 1px solid #29332c; border-radius: 6px; padding: 7px 10px; background: #111512; color: #87938a; font-size: 9px; cursor: pointer; }
+.affinity-periods button.selected { border-color: #5d946c; background: #18251c; color: #b2edc0; }
