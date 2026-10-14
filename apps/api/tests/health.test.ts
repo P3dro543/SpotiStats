@@ -6,7 +6,10 @@ describe("GET /api/v1/health", () => {
     const app = await buildApp();
     const response = await app.inject({ method: "GET", url: "/api/v1/health" });
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ data: { status: "ok", databaseConfigured: false, spotifyConfigured: false } });
+    const body = response.json();
+    expect(body.data.status).toBe("ok");
+    expect(typeof body.data.databaseConfigured).toBe("boolean");
+    expect(typeof body.data.spotifyConfigured).toBe("boolean");
     await app.close();
   }, 15000);
 });

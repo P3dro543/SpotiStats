@@ -52,6 +52,26 @@ docker compose up --build
 
 Abre `http://localhost:8080`. El API espera PostgreSQL saludable, aplica migraciones y luego inicia. En este Compose la base usa credenciales locales fijas y solo escucha en loopback: úsalo para desarrollo, no como configuración de producción.
 
+## Despliegue en Vercel
+
+El repositorio incluye `vercel.json` para desplegar web y API juntas como dos Vercel Services bajo un mismo dominio. Vercel Services está en beta: al importar el repositorio, selecciona el framework **Services** en los ajustes del proyecto. La configuración enruta `/api/*` y `/documentation/*` a Fastify, y el resto de rutas a la SPA React.
+
+En Vercel configura estas variables para Production:
+
+- `NODE_ENV=production`
+- `DATABASE_URL`: cadena de conexión de Neon con TLS; usa la URL pooled para la API.
+- `SESSION_SECRET`: secreto aleatorio propio de al menos 32 caracteres.
+- `TOKEN_ENCRYPTION_KEY`: clave propia en Base64 que represente exactamente 32 bytes.
+- `WEB_ORIGIN`: origen público de la app, por ejemplo `https://spotistats-tuusuario.vercel.app` (sin `/` final).
+- `SPOTIFY_CLIENT_ID` y `SPOTIFY_CLIENT_SECRET` si usarás conexión Spotify.
+- `SPOTIFY_REDIRECT_URI`: `https://spotistats-tuusuario.vercel.app/api/v1/auth/spotify/callback`; debe coincidir exactamente con el callback registrado en Spotify.
+
+Después de agregar las variables, despliega de nuevo. La base Neon ya debe tener las migraciones aplicadas; antes de desplegar cambios futuros del esquema, ejecuta `pnpm db:deploy` contra la base correspondiente. No pongas los secretos en `vercel.json`, en el código del frontend ni en Git.
+
+**Límite de importación:** Vercel limita el cuerpo de una solicitud a sus funciones a 4.5 MB. En Vercel no se podrán subir archivos JSON grandes del historial con el endpoint actual (el límite local de 25 MB no elimina el límite de la plataforma). Para importar esos archivos, usa la opción Docker Compose en un servidor compatible o añade almacenamiento con subida directa antes de importar.
+
+La configuración utiliza los servicios de Vercel para compartir un solo dominio y evitar que las cookies de sesión dependan de una API en otro dominio. Consulta la [guía de Vercel Services](https://vercel.com/kb/guide/vercel-services), la [integración Fastify](https://vercel.com/docs/frameworks/backend/fastify), los [límites de funciones](https://vercel.com/docs/functions/limitations) y la [guía de Vite](https://vercel.com/docs/frameworks/frontend/vite). Si la opción Services aún no aparece en tu cuenta, no despliegues el proyecto como un Vite aislado: esa configuración no enrutaría el API.
+
 ## Despliegue en un servidor
 
 La opción incluida asume un servidor Linux con Docker Compose, un nombre DNS apuntando al servidor y PostgreSQL administrado con TLS/copia de seguridad. Caddy termina HTTPS automáticamente.
