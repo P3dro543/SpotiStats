@@ -6,10 +6,9 @@
       "framework": "vite"
     },
     "api": {
-      "root": "apps/api",
-      "framework": "fastify",
-      "entrypoint": "src/server.mts",
-      "installCommand": "pnpm install --frozen-lockfile"
+      "root": ".",
+      "runtime": "container",
+      "entrypoint": "apps/api/Dockerfile.vercel"
     }
   },
   "rewrites": [
