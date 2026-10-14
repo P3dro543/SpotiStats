@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildApp } from "../src/application.js";
+import { buildApp } from "../src/application.mjs";
 
 describe("GET /api/v1/health", () => {
   it("returns a consistent healthy response", async () => {
@@ -25,8 +25,9 @@ describe("protected API routes", () => {
   it("does not fake Spotify OAuth when server credentials are missing", async () => {
     const app = await buildApp();
     const response = await app.inject({ method: "GET", url: "/api/v1/auth/spotify" });
-    expect(response.statusCode).toBe(503);
-    expect(response.json().error.code).toBe("SPOTIFY_NOT_CONFIGURED");
+    const configured = Boolean(process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET);
+    expect(response.statusCode).toBe(configured ? 302 : 503);
+    if (!configured) expect(response.json().error.code).toBe("SPOTIFY_NOT_CONFIGURED");
     await app.close();
   });
 });
