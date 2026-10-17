@@ -84,6 +84,22 @@ export async function analyticsRoutes(app: FastifyInstance): Promise<void> {
     return { data: data.map((row) => ({ date: row.date, events: Number(row.events), minutes: Number(row.milliseconds) / 60_000 })) };
   });
 
+  app.get<{ Querystring: { timezone?: string } }>("/dashboard/yearly-listening", { preHandler: [requireSession], schema: { tags: ["dashboard"], summary: "Listening minutes grouped by local calendar year" } }, async (request, reply) => {
+    const timezone = request.query.timezone ?? "UTC";
+    try { validateTimezone(timezone); }
+    catch { return reply.code(400).send({ error: { code: "INVALID_TIMEZONE", message: "Invalid timezone." } }); }
+    const rows = await prisma.$queryRaw<Array<{ year: number; events: bigint; durationEvents: bigint; milliseconds: bigint; firstPlay: Date }>>(Prisma.sql`
+      SELECT extract(year FROM ("playedAt" AT TIME ZONE ${timezone}))::int AS year,
+        count(*)::bigint AS events,
+        count("msPlayed")::bigint AS "durationEvents",
+        coalesce(sum("msPlayed"), 0)::bigint AS milliseconds,
+        min("playedAt") AS "firstPlay"
+      FROM "ListeningEvent"
+      WHERE "userId" = ${request.userId!}
+      GROUP BY 1 ORDER BY 1 ASC`);
+    return { data: { years: rows.map((row) => ({ year: row.year, events: Number(row.events), durationEvents: Number(row.durationEvents), minutes: Number(row.milliseconds) / 60_000, firstPlay: row.firstPlay })), firstYear: rows[0]?.year ?? null, totalMinutes: rows.reduce((total, row) => total + Number(row.milliseconds) / 60_000, 0), totalEvents: rows.reduce((total, row) => total + Number(row.events), 0), durationEvents: rows.reduce((total, row) => total + Number(row.durationEvents), 0) } };
+  });
+
   app.get<{ Querystring: Record<string, string | undefined> }>("/dashboard/activity-heatmap", { preHandler: [requireSession], schema: { tags: ["dashboard"], summary: "Activity grouped by local weekday and hour" } }, async (request, reply) => {
     const filters = validatedQuery(request.query);
     if (!filters) return reply.code(400).send({ error: { code: "INVALID_FILTERS", message: "Check date filters and timezone." } });
